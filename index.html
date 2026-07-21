@@ -2497,6 +2497,7 @@
           const followerPieAccounts = accounts.filter(k => isOverviewNetSelected(k) && latestFollowers[k] > 0);
           var c2 = safeChart(document.getElementById('compFollowersPie'), {
             type: 'doughnut',
+            plugins: [doughnutCenterPlugin],
             data: {
               labels: followerPieAccounts.map(k => getAccountLabel(k)),
               datasets: [{ data: followerPieAccounts.map(k => latestFollowers[k]), backgroundColor: followerPieAccounts.map(k => SHEET_DATA[k].color), borderWidth: 0 }]
@@ -2504,6 +2505,7 @@
             options: {
               responsive: true, maintainAspectRatio: true,
               plugins: {
+                doughnutCenter: { title: 'Seguidores' },
                 legend: { position: 'bottom', labels: { color: '#f4f6fc', boxWidth: 12, padding: 10 } },
                 tooltip: {
                   callbacks: {
@@ -2558,6 +2560,7 @@
           const viewsPieAccounts = accounts.filter(k => isOverviewNetSelected(k) && latestViews[k] > 0);
           var c4 = safeChart(document.getElementById('compViewsPie'), {
             type: 'doughnut',
+            plugins: [doughnutCenterPlugin],
             data: {
               labels: viewsPieAccounts.map(k => getAccountLabel(k)),
               datasets: [{ data: viewsPieAccounts.map(k => latestViews[k]), backgroundColor: viewsPieAccounts.map(k => SHEET_DATA[k].color), borderWidth: 0 }]
@@ -2565,6 +2568,7 @@
             options: {
               responsive: true, maintainAspectRatio: true,
               plugins: {
+                doughnutCenter: { title: 'Visualizações' },
                 legend: { position: 'bottom', labels: { color: '#f4f6fc', boxWidth: 12, padding: 10 } },
                 tooltip: {
                   callbacks: {
@@ -2917,6 +2921,28 @@
       } catch (e) { console.warn('Chart error:', e.message); }
       return null;
     }
+
+    const doughnutCenterPlugin = {
+      id: 'doughnutCenter',
+      afterDraw(chart) {
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data || meta.data.length === 0) return;
+        const { ctx: c, width, height } = chart;
+        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+        const centerLabel = chart.config.options.plugins.doughnutCenter || {};
+        const title = centerLabel.title || '';
+        c.save();
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.font = 'bold 22px Cairo, sans-serif';
+        c.fillStyle = '#f4f6fc';
+        c.fillText(total.toLocaleString('pt-BR'), width / 2, height / 2 - 8);
+        c.font = '12px Cairo, sans-serif';
+        c.fillStyle = '#8b8fa3';
+        c.fillText(title, width / 2, height / 2 + 16);
+        c.restore();
+      }
+    };
 
     // ========== INIT ==========
     document.addEventListener('DOMContentLoaded', () => {
