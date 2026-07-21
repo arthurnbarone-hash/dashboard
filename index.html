@@ -2927,19 +2927,21 @@
       afterDraw(chart) {
         const meta = chart.getDatasetMeta(0);
         if (!meta || !meta.data || meta.data.length === 0) return;
-        const { ctx: c, width, height } = chart;
+        const { ctx: c, chartArea } = chart;
         const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
         const centerLabel = chart.config.options.plugins.doughnutCenter || {};
         const title = centerLabel.title || '';
+        const cx = (chartArea.left + chartArea.right) / 2;
+        const cy = (chartArea.top + chartArea.bottom) / 2;
         c.save();
         c.textAlign = 'center';
         c.textBaseline = 'middle';
         c.font = 'bold 22px Cairo, sans-serif';
         c.fillStyle = '#f4f6fc';
-        c.fillText(total.toLocaleString('pt-BR'), width / 2, height / 2 - 8);
+        c.fillText(total.toLocaleString('pt-BR'), cx, cy - 8);
         c.font = '12px Cairo, sans-serif';
         c.fillStyle = '#8b8fa3';
-        c.fillText(title, width / 2, height / 2 + 16);
+        c.fillText(title, cx, cy + 16);
         c.restore();
       }
     };
