@@ -2468,16 +2468,16 @@
       const allNetworks = [...new Set(goals.map(g => g.network))].filter(Boolean);
       const allAccounts = [...new Set(goals.map(g => g.handle))].filter(Boolean);
       const filterState = JSON.parse(localStorage.getItem('metaFilterState') || '{}');
-      const netCheckboxes = document.querySelectorAll('#filterNetworks input[type=checkbox]');
-      const accCheckboxes = document.querySelectorAll('#filterAccounts input[type=checkbox]');
-      const selectedNets = netCheckboxes.length > 0 ? [...netCheckboxes].filter(c => c.checked).map(c => c.id.replace('fnet_', '')) : [];
-      const selectedAccs = accCheckboxes.length > 0 ? [...accCheckboxes].filter(c => c.checked).map(c => c.id.replace('facc_', '')) : [];
-      const anyNetsSelected = selectedNets.length > 0;
-      const anyAccsSelected = selectedAccs.length > 0;
+      const selectedNet = filterState.selectedNet || '';
+      const selectedAcc = filterState.selectedAcc || '';
+      const anyNetsSelected = selectedNet !== '';
+      const anyAccsSelected = selectedAcc !== '';
+      const selectedNets = anyNetsSelected ? [selectedNet] : [];
+      const selectedAccs = anyAccsSelected ? [selectedAcc] : [];
       const filtered = goals.filter(g => {
         if (!anyNetsSelected && !anyAccsSelected) return true;
-        if (anyNetsSelected && !selectedNets.includes(g.network)) return false;
-        if (anyAccsSelected && !selectedAccs.includes(g.handle)) return false;
+        if (anyNetsSelected && g.network !== selectedNet) return false;
+        if (anyAccsSelected && g.handle !== selectedAcc) return false;
         return true;
       });
 
@@ -2501,26 +2501,20 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:24px;">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px;align-items:flex-end;">
         <div style="flex:1;min-width:180px;" id="filterNetworks">
-          <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Redes</label>
-          ${allNetworks.map(n => `
-            <label class="filter-chip" data-group="filterNetworks" data-val="${n}">
-              <span class="check-indicator">✓</span>
-              <input type="checkbox" id="fnet_${n}" ${filterState['fnet_' + n] !== false ? 'checked' : ''} onchange="saveFilterState();renderGoals()">
-              <span style="font-size:13px;">${n}</span>
-            </label>
-          `).join('')}
+          <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Redes</label>
+          <select id="selectFilterNetwork" onchange="toggleFilterSelect('network', this.value)" style="width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+            <option value="">Todas</option>
+            ${allNetworks.map(n => `<option value="${n}" ${anyNetsSelected && selectedNets.includes(n) ? 'selected' : ''}>${n}</option>`).join('')}
+          </select>
         </div>
         <div style="flex:1;min-width:180px;" id="filterAccounts">
-          <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:8px;">Contas</label>
-          ${allAccounts.map(h => `
-            <label class="filter-chip" data-group="filterAccounts" data-val="${h}">
-              <span class="check-indicator">✓</span>
-              <input type="checkbox" id="facc_${h}" ${filterState['facc_' + h] !== false ? 'checked' : ''} onchange="saveFilterState();renderGoals()">
-              <span style="font-size:13px;">${h}</span>
-            </label>
-          `).join('')}
+          <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Contas</label>
+          <select id="selectFilterAccount" onchange="toggleFilterSelect('account', this.value)" style="width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+            <option value="">Todas</option>
+            ${allAccounts.map(h => `<option value="${h}" ${anyAccsSelected && selectedAccs.includes(h) ? 'selected' : ''}>${h}</option>`).join('')}
+          </select>
         </div>
       </div>
 
@@ -2666,24 +2660,21 @@
     }
 
     function saveFilterState() {
-      const state = {};
-      document.querySelectorAll('#filterNetworks input[type=checkbox], #filterAccounts input[type=checkbox]').forEach(c => { state[c.id] = c.checked; });
+      const state = {
+        selectedNet: document.getElementById('selectFilterNetwork') ? document.getElementById('selectFilterNetwork').value : '',
+        selectedAcc: document.getElementById('selectFilterAccount') ? document.getElementById('selectFilterAccount').value : ''
+      };
       localStorage.setItem('metaFilterState', JSON.stringify(state));
     }
 
-    function updateFilterUI() {
-      document.querySelectorAll('.filter-chip').forEach(el => {
-        const cb = el.querySelector('input[type=checkbox]');
-        el.classList.toggle('active', cb && cb.checked);
-      });
-    }
+    function updateFilterUI() {}
 
-    function clearFilters() {
-      const state = {};
-      document.querySelectorAll('#filterNetworks input[type=checkbox], #filterAccounts input[type=checkbox]').forEach(c => { state[c.id] = false; });
-      localStorage.setItem('metaFilterState', JSON.stringify(state));
+    function toggleFilterSelect(type, val) {
+      saveFilterState();
       renderGoals();
     }
+
+    function toggleFilter(group, val) {}
 
     function openMetaModal() {
       const modal = document.getElementById('metaModal');
@@ -2706,10 +2697,7 @@
       if (e.target && e.target.id === 'metaModal') closeMetaModal();
     });
 
-    function toggleFilter(group, val) {
-      const el = document.getElementById(group === 'filterNetworks' ? 'fnet_' + val : 'facc_' + val);
-      if (el) { el.checked = !el.checked; renderGoals(); }
-    }
+    function toggleFilter(group, val) {}
 
     function deleteMeta(idx) {
       const goals = getGoals();
