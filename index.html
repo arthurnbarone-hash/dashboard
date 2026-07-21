@@ -2098,6 +2098,17 @@
       return 1;
     }
 
+    function selectOverviewNet(key) {
+      const accounts = getOverviewAccounts();
+      if (!key || key === '') {
+        _overviewNetFilter = null;
+      } else {
+        _overviewNetFilter = [key];
+      }
+      destroyOverviewCharts();
+      renderOverviewData();
+    }
+
     function toggleOverviewNet(key) {
       const accounts = getOverviewAccounts();
       if (_overviewNetFilter === null) {
@@ -2239,15 +2250,14 @@
       <div class="section-heading-line"></div>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center;">
-      <button class="btn btn-sm" onclick="selectAllOverviewNets()" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);font-size:11px;"><i class="fas fa-check-double"></i> Todas</button>
-      ${accounts.map(key => {
-        const d = SHEET_DATA[key];
-        const selected = isOverviewNetSelected(key);
-        return `<button class="btn btn-sm overview-net-chip ${selected ? 'active' : ''}" onclick="toggleOverviewNet('${key}')" style="background:${selected ? d.color : 'transparent'};border:1px solid ${selected ? d.color : 'var(--border)'};color:${selected ? '#fff' : 'var(--text-muted)'};font-size:11px;padding:5px 12px;border-radius:20px;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${selected ? '#fff' : d.color};margin-right:6px;"></span>${getAccountShortLabel(key)}
-        </button>`;
-      }).join('')}
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end;">
+      <div style="flex:1;min-width:180px;">
+        <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Rede</label>
+        <select onchange="selectOverviewNet(this.value)" style="width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <option value="">Todas</option>
+          ${accounts.map(key => `<option value="${key}" ${_overviewNetFilter !== null && _overviewNetFilter.length === 1 && _overviewNetFilter[0] !== key ? 'selected' : (_overviewNetFilter === null ? '' : (_overviewNetFilter.includes(key) ? '' : 'selected'))}>${getAccountShortLabel(key)}</option>`).join('')}
+        </select>
+      </div>
     </div>
 
     <div class="charts-grid">
@@ -2266,15 +2276,14 @@
       <div class="section-heading-line"></div>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center;">
-      <button class="btn btn-sm" onclick="selectAllOverviewNets()" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);font-size:11px;"><i class="fas fa-check-double"></i> Todas</button>
-      ${accounts.map(key => {
-        const d = SHEET_DATA[key];
-        const selected = isOverviewNetSelected(key);
-        return `<button class="btn btn-sm overview-net-chip ${selected ? 'active' : ''}" onclick="toggleOverviewNet('${key}')" style="background:${selected ? d.color : 'transparent'};border:1px solid ${selected ? d.color : 'var(--border)'};color:${selected ? '#fff' : 'var(--text-muted)'};font-size:11px;padding:5px 12px;border-radius:20px;">
-          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${selected ? '#fff' : d.color};margin-right:6px;"></span>${getAccountShortLabel(key)}
-        </button>`;
-      }).join('')}
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end;">
+      <div style="flex:1;min-width:180px;">
+        <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">Rede</label>
+        <select onchange="selectOverviewNet(this.value)" style="width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;">
+          <option value="">Todas</option>
+          ${accounts.map(key => `<option value="${key}" ${_overviewNetFilter !== null && _overviewNetFilter.length === 1 && _overviewNetFilter[0] !== key ? 'selected' : (_overviewNetFilter === null ? '' : (_overviewNetFilter.includes(key) ? '' : 'selected'))}>${getAccountShortLabel(key)}</option>`).join('')}
+        </select>
+      </div>
     </div>
 
     <div class="charts-grid">
