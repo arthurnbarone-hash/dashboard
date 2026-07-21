@@ -10,6 +10,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
   <script>var Chart = null;</script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCJozFF6l71IB9xSu6UviERKEN9IN9PDpI",
+      authDomain: "dashboard-metas-4e035.firebaseapp.com",
+      databaseURL: "https://dashboard-metas-4e035-default-rtdb.firebaseio.com",
+      projectId: "dashboard-metas-4e035",
+      storageBucket: "dashboard-metas-4e035.firebasestorage.app",
+      messagingSenderId: "967302507699",
+      appId: "1:967302507699:web:9d3f95626aff586f6114c6"
+    });
+    var db = firebase.database();
+    var goalsCache = [];
+  </script>
   <style>
     * {
       margin: 0;
@@ -1356,7 +1371,9 @@
       }
     });
 
+    var currentPage = 'home';
     function navigate(page, param) {
+      currentPage = page;
       const backBtn = document.getElementById('backBtn');
       backBtn.style.display = page === 'home' ? 'none' : 'block';
       renderPage(page, param);
@@ -2399,11 +2416,21 @@
       });
     }
 
-    // ========== GOALS ==========
-    function getGoals() {
-      try { return JSON.parse(localStorage.getItem('gtcon_goals')) || []; } catch { return []; }
+    // ========== GOALS (Firebase) ==========
+    function getGoals() { return goalsCache; }
+    function saveGoals(g) {
+      goalsCache = g;
+      db.ref('goals').set(g);
     }
-    function saveGoals(g) { localStorage.setItem('gtcon_goals', JSON.stringify(g)); }
+    function loadGoalsFromFirebase() {
+      return db.ref('goals').once('value').then(snap => {
+        goalsCache = snap.val() || [];
+      }).catch(() => { goalsCache = []; });
+    }
+    db.ref('goals').on('value', snap => {
+      goalsCache = snap.val() || [];
+      if (document.getElementById('app') && typeof currentPage !== 'undefined' && currentPage === 'goals') renderGoals();
+    });
 
     function normalizeNetwork(name) {
       return NETWORK_MAP[name.toLowerCase()] || name;
@@ -2738,18 +2765,20 @@
 
     // ========== INIT ==========
     document.addEventListener('DOMContentLoaded', () => {
-      try {
-        navigate('home');
-      } catch (e) {
-        document.getElementById('app').innerHTML =
-          `<div class="page" style="text-align:center;padding:60px;">
-        <div style="font-size:48px;color:#f44336;margin-bottom:16px;"><i class="fas fa-exclamation-triangle"></i></div>
-        <h2 style="margin-bottom:8px;">Erro ao carregar</h2>
-        <p style="color:var(--text-muted);">${e.message}</p>
-        <p style="color:var(--text-muted);font-size:12px;margin-top:16px;">Tente limpar o cache do navegador e recarregar.</p>
-      </div>`;
-        console.error(e);
-      }
+      loadGoalsFromFirebase().then(() => {
+        try {
+          navigate('home');
+        } catch (e) {
+          document.getElementById('app').innerHTML =
+            `<div class="page" style="text-align:center;padding:60px;">
+          <div style="font-size:48px;color:#f44336;margin-bottom:16px;"><i class="fas fa-exclamation-triangle"></i></div>
+          <h2 style="margin-bottom:8px;">Erro ao carregar</h2>
+          <p style="color:var(--text-muted);">${e.message}</p>
+          <p style="color:var(--text-muted);font-size:12px;margin-top:16px;">Tente limpar o cache do navegador e recarregar.</p>
+        </div>`;
+          console.error(e);
+        }
+      });
     });
   </script>
 </body>
