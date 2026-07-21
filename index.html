@@ -2370,10 +2370,11 @@
       let totalViews = 0;
       accounts.forEach(key => {
         const arr = viewsSeries[key];
-        let val = 0;
-        for (let i = arr.length - 1; i >= 0; i--) { if (arr[i] !== null) { val = arr[i]; break; } }
-        latestViews[key] = val;
-        totalViews += val;
+        let lastVal = 0, prevVal = 0;
+        for (let i = arr.length - 1; i >= 0; i--) { if (arr[i] !== null) { lastVal = arr[i]; break; } }
+        for (let i = arr.length - 2; i >= 0; i--) { if (arr[i] !== null) { prevVal = arr[i]; break; } }
+        latestViews[key] = Math.max(0, lastVal - prevVal);
+        totalViews += latestViews[key];
       });
 
       container.innerHTML = `
@@ -2568,7 +2569,7 @@
             options: {
               responsive: true, maintainAspectRatio: true,
               plugins: {
-                doughnutCenter: { title: 'Visualizações' },
+                doughnutCenter: { title: 'Visualizações (Último Mês)' },
                 legend: { position: 'bottom', labels: { color: '#f4f6fc', boxWidth: 12, padding: 10 } },
                 tooltip: {
                   callbacks: {
